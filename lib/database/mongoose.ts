@@ -13,10 +13,10 @@ declare global {
   var mongoose: MongooseConnection | undefined;
 }
 
-// Initialize the cached connection object if it's not already defined
+// Ensure `cached` is initialized with the correct type
 const cached: MongooseConnection = global.mongoose || { conn: null, promise: null };
 
-// Assign the cached connection back to the global object
+// Assign the `cached` object to `global.mongoose` for further use
 global.mongoose = cached;
 
 export const connectToDatabase = async (): Promise<Mongoose> => {
@@ -24,7 +24,7 @@ export const connectToDatabase = async (): Promise<Mongoose> => {
 
   if (!MONGODB_URL) throw new Error("Missing MONGODB URL");
 
-  // Establish a new connection if no promise exists
+  // Initialize the connection promise if it hasn't been set
   cached.promise =
     cached.promise ||
     mongoose.connect(MONGODB_URL, {
@@ -32,6 +32,7 @@ export const connectToDatabase = async (): Promise<Mongoose> => {
       bufferCommands: false,
     });
 
+  // Await the promise and store the connection
   cached.conn = await cached.promise;
 
   return cached.conn;
