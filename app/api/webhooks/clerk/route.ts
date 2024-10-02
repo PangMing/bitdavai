@@ -25,7 +25,7 @@ export async function POST(req: Request) {
 
   // If there are no headers, error out
   if (!svix_id || !svix_timestamp || !svix_signature) {
-    return new Response("Error occured -- no svix headers", {
+    return new Response("Error occurred -- no svix headers", {
       status: 400,
     });
   }
@@ -48,7 +48,7 @@ export async function POST(req: Request) {
     }) as WebhookEvent;
   } catch (err) {
     console.error("Error verifying webhook:", err);
-    return new Response("Error occured", {
+    return new Response("Error occurred", {
       status: 400,
     });
   }
@@ -61,15 +61,17 @@ export async function POST(req: Request) {
   if (eventType === "user.created") {
     const { id, email_addresses, image_url, first_name, last_name, username } = evt.data;
 
+    // Ensure firstName and lastName are never null
     const user = {
       clerkId: id,
       email: email_addresses[0].email_address,
-      username: username!,
-      firstName: first_name,
-      lastName: last_name,
+      username: username!, // Use '!' to assert that username is not null
+      firstName: first_name || '', // Use empty string if first_name is null
+      lastName: last_name || '',   // Use empty string if last_name is null
       photo: image_url,
     };
 
+    // Call your createUser function
     const newUser = await createUser(user);
 
     // Set public metadata
@@ -88,10 +90,11 @@ export async function POST(req: Request) {
   if (eventType === "user.updated") {
     const { id, image_url, first_name, last_name, username } = evt.data;
 
+    // Ensure firstName and lastName are never null
     const user = {
-      firstName: first_name,
-      lastName: last_name,
-      username: username!,
+      firstName: first_name || '', // Use empty string if first_name is null
+      lastName: last_name || '',   // Use empty string if last_name is null
+      username: username!, // Use '!' to assert that username is not null
       photo: image_url,
     };
 
@@ -109,7 +112,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: "OK", user: deletedUser });
   }
 
-  console.log(`Webhook with and ID of ${id} and type of ${eventType}`);
+  console.log(`Webhook with ID of ${id} and type of ${eventType}`);
   console.log("Webhook body:", body);
 
   return new Response("", { status: 200 });
